@@ -52,9 +52,8 @@ class HPbar(pygame.sprite.Sprite):
 
 
 class AttackArea(pygame.sprite.Sprite):
-    def __init__(self, owner, attack_type):
+    def __init__(self, owner):
         super().__init__()
-        self.attack_type = attack_type
         self.color = "GREY"
         self.owner = owner
         self.width = 170
@@ -66,36 +65,24 @@ class AttackArea(pygame.sprite.Sprite):
         self.last_pressed_attack = time.perf_counter()
 
     def attack(self):
-        if self.attack_type == "player":
-            keys = pygame.key.get_pressed()
-            if time.perf_counter() - self.last_pressed_attack >= self.owner.cd_attack:
-                self.image.fill("GREY")
-                if keys[pygame.K_1]:
-                    for el in self.owner.enemy_list:
-                        if self.rect.colliderect(el):
-                            el.rec_hp -= self.owner.attack
-                            el.who_attacked = self.owner
-                        
-                        if el.rec_hp <= 0:
-                            el.get_exp(self.owner)
-                    self.last_pressed_attack = time.perf_counter()
-            else:
-                self.image.fill("BLACK")
-        
-        if self.attack_type == "auto":
-            if self.owner.who_attacked is not None and time.perf_counter() - self.last_pressed_attack >= self.owner.cd_attack and self.rect.colliderect(self.owner.who_attacked.rect):
-                self.owner.who_attacked.rec_hp -= self.owner.attack
-                        
+        keys = pygame.key.get_pressed()
+        if time.perf_counter() - self.last_pressed_attack >= self.owner.cd_attack:
+            self.image.fill("GREY")
+            if keys[pygame.K_1]:
+                for el in self.owner.enemy_list:
+                    if self.rect.colliderect(el):
+                        el.rec_hp -= self.owner.attack
+                        el.who_attacked = self.owner
+                    
+                    if el.rec_hp <= 0:
+                        el.get_exp(self.owner)
                 self.last_pressed_attack = time.perf_counter()
-    
-    def death(self):
-        if self.owner.rec_hp <= 0:
-            self.kill()
+        else:
+            self.image.fill("BLACK")
 
     def update(self):
         self.rect.center = self.owner.rect.center
         self.attack()
-        self.death()
 
 
 class Hero(pygame.sprite.Sprite):
@@ -103,7 +90,7 @@ class Hero(pygame.sprite.Sprite):
         super().__init__()
         self.x = x
         self.y = y
-        self.cd_attack = 1
+        self.cd_attack = 0.5
         self.level = 0
         self.points = 0
         self.exp = 0
@@ -122,12 +109,8 @@ class Hero(pygame.sprite.Sprite):
         self.rect.move_ip(x, y)
         self.exp_bar = EXPbar(0, 0, self)
         self.hp_bar = HPbar(self, "GREEN", 0, self.x, 80, 20)
-        self.attack_area = AttackArea(self, "player")
+        self.attack_area = AttackArea(self)
     
-    def death(self):
-        if self.rec_hp <= 0:
-            self.kill()
-
     def exp_check(self):
         if self.exp >= self.max_exp:
             self.level += 1
@@ -154,7 +137,6 @@ class Hero(pygame.sprite.Sprite):
         self.move()
         self.hp_bar.update()
         self.exp_bar.update()
-        self.death()
 
 class Spawner(pygame.sprite.Sprite):
     def __init__(self, x, y, enemy_cnt, enemyes, sprites):
@@ -182,7 +164,6 @@ class Spawner(pygame.sprite.Sprite):
                 self.spawns_enemyes.append(enemy)
                 self.all_sprites.add(enemy)
                 self.all_sprites.add(enemy.hp_bar)
-                self.all_sprites.add(enemy.attack_area)
                 self.enemyes_group.add(enemy)
     
     def update(self):
@@ -193,7 +174,6 @@ class Spawner(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, spawner):
         super().__init__()
-        self.attack = 10
         self.who_attacked = None
         self.spawner = spawner
         self.give_exp = 5
@@ -203,7 +183,6 @@ class Enemy(pygame.sprite.Sprite):
         self.speed = 1
         self.width = 80
         self.height = 80
-        self.cd_attack = 2
         self.color = "RED"
         self.image = pygame.Surface((self.width, self.height))
         self.rect = self.image.get_rect()
@@ -213,7 +192,6 @@ class Enemy(pygame.sprite.Sprite):
         self.max_hp = 150
         self.rec_hp = self.max_hp
         self.hp_bar = HPbar(self, "Brown", x, y - 40 , 80, 20)
-        self.attack_area = AttackArea(self, "auto")
 
     def get_exp(self, hero):
         hero.exp += self.give_exp
@@ -244,4 +222,3 @@ class Enemy(pygame.sprite.Sprite):
     def update(self):
         self.follow_and_check()
         self.death()
-        self.attack_area.update()

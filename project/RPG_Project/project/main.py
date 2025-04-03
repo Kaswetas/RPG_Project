@@ -21,6 +21,7 @@ sprites.add(hero.attack_area)
 
 run = True
 while run:
+    print(hero.exp_bar.rect)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
