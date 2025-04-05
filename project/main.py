@@ -1,6 +1,5 @@
 import pygame
 import classes
-import time
 pygame.init()
 
 screen = pygame.display.set_mode((1200, 800), pygame.SCALED)
@@ -25,9 +24,10 @@ while run:
         if event.type == pygame.QUIT:
             pygame.quit()
             run = False
-    screen.fill("BLACK")
-    sprites.draw(screen)
     sprites.update()
-    pygame.display.update()
+    screen.fill("BLACK")
+    for sprite in sprites:
+        screen.blit(sprite.image, sprite.rect.topleft + hero.camera)
+    pygame.display.flip()
 
     clock.tick(80)

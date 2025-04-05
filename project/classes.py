@@ -2,6 +2,9 @@ import pygame
 import time
 from random import randint
 
+from pygame import Vector2
+
+
 class EXPbar(pygame.sprite.Sprite):
     def __init__(self, x, y, owner):
         super().__init__()
@@ -123,6 +126,7 @@ class Hero(pygame.sprite.Sprite):
         self.exp_bar = EXPbar(0, 0, self)
         self.hp_bar = HPbar(self, "GREEN", 0, self.x, 80, 20)
         self.attack_area = AttackArea(self, "player")
+        self.camera = Vector2(300 - 80, 0 - 80)
     
     def death(self):
         if self.rec_hp <= 0:
@@ -139,12 +143,16 @@ class Hero(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             self.rect.move_ip(-self.speed, 0)
+            self.camera.x += self.speed
         if keys[pygame.K_d]:
             self.rect.move_ip(self.speed, 0)
+            self.camera.x -= self.speed
         if keys[pygame.K_w]:
             self.rect.move_ip(0, -self.speed)
+            self.camera.y += self.speed
         if keys[pygame.K_s]:
             self.rect.move_ip(0, self.speed)
+            self.camera.y -= self.speed
     
     def update(self, *args, **kwargs):
         self.x = self.rect.x
