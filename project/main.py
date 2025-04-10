@@ -3,29 +3,41 @@ import classes
 import time
 pygame.init()
 
-screen = pygame.display.set_mode((1200, 800), pygame.SCALED)
+screen = pygame.display.set_mode((1400, 800), pygame.SCALED)
 pygame.display.set_caption("RPG")
 pygame.display.set_icon(pygame.image.load("others/ну тупо я.webp"))
 clock = pygame.time.Clock()
 sprites = pygame.sprite.Group()
 enemyes = pygame.sprite.Group()
 
-spawner = classes.Spawner(100, 100, 3, enemyes, sprites)
-sprites.add(spawner)
+boots = classes.Item({"speed": 10,
+                        "cd_attack": -0.5}, "WHITE")
+sword = classes.Item({"max_hp": 50,
+                      "attack": 50}, "BLACK")
+
+spawner1 = classes.Spawner(100, 100, 3, enemyes, sprites, 10, 5, 2, 100, {boots: 100,
+                                                                          sword: 100})
+spawner2 = classes.Spawner(700, 200, 2, enemyes, sprites, 25, 10, 2, 200, {boots: 100})
+sprites.add(spawner1)
+sprites.add(spawner2)
+
 
 hero = classes.Hero(300, 400, enemyes)
 sprites.add(hero)
 sprites.add(hero.exp_bar)
 sprites.add(hero.hp_bar)
 sprites.add(hero.attack_area)
+sprites.add(hero.inventory)
 
 run = True
 while run:
-    print(hero.exp_bar.rect)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             run = False
+        if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_i:
+                        hero.inventory.open_close()
     screen.fill("BLACK")
     sprites.draw(screen)
     sprites.update()
