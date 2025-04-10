@@ -77,7 +77,7 @@ class AttackArea(pygame.sprite.Sprite):
                     for el in self.owner.enemy_list:
                         if self.rect.colliderect(el):
                             el.rec_hp -= self.owner.attack
-                            el.who_attacked = self.owner
+                            el.objective = self.owner
                         
                         if el.rec_hp <= 0:
                             el.get_exp(self.owner)
@@ -86,8 +86,8 @@ class AttackArea(pygame.sprite.Sprite):
                 self.image.fill("BLACK")
         
         if self.attack_type == "auto":
-            if self.owner.who_attacked is not None and time.perf_counter() - self.last_pressed_attack >= self.owner.cd_attack and self.rect.colliderect(self.owner.who_attacked.rect):
-                self.owner.who_attacked.rec_hp -= self.owner.attack
+            if self.owner.objective is not None and time.perf_counter() - self.last_pressed_attack >= self.owner.cd_attack and self.rect.colliderect(self.owner.objective.rect):
+                self.owner.objective.rec_hp -= self.owner.attack
                         
                 self.last_pressed_attack = time.perf_counter()
     
