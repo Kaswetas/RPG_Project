@@ -27,6 +27,9 @@ while run:
     sprites.update()
     screen.fill("BLACK")
     for sprite in sprites:
+        if type(sprite) == classes.EXPbar:
+            screen.blit(sprite.image, sprite.rect.topleft)
+            continue
         screen.blit(sprite.image, sprite.rect.topleft + hero.camera)
     pygame.display.flip()
 
