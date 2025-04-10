@@ -39,8 +39,13 @@ while run:
                     if event.key == pygame.K_i:
                         hero.inventory.open_close()
     screen.fill("BLACK")
-    sprites.draw(screen)
     sprites.update()
+    for sprite in sprites:
+        if type(sprite) == classes.EXPbar or type(sprite) == classes.Inventory:
+            screen.blit(sprite.image, sprite.rect.topleft)
+            continue
+        screen.blit(sprite.image, (sprite.rect.x + hero.camera[0], sprite.rect.y + hero.camera[1]))
+
     pygame.display.update()
 
     clock.tick(80)
