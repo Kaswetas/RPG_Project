@@ -107,6 +107,7 @@ class Inventory(pygame.sprite.Sprite):
         self.rect.y = 100
         self.image.fill("BROWN")
         self.items = []
+        self.materials = {}
         self.length = 0
         self.open = False
         self.image.set_alpha(0)
@@ -136,6 +137,12 @@ class Inventory(pygame.sprite.Sprite):
                 y += 70
             x += 70
             self.image.blit(self.items[i].image, (x, y))
+        
+        x = 20
+        y = 500
+        for keys, value in enumerate(self.materials):
+            self.image.blit(value.image, (x, y))
+            x += 70
 class Hero(pygame.sprite.Sprite):
     def __init__(self, x, y, enemy_list):
         super().__init__()
@@ -167,6 +174,8 @@ class Hero(pygame.sprite.Sprite):
     def death(self):
         if self.rec_hp <= 0:
             self.kill()
+        if self.rec_hp > self.max_hp:
+            self.rec_hp = self.max_hp
 
     def exp_check(self):
         if self.exp >= self.max_exp:
@@ -201,7 +210,7 @@ class Hero(pygame.sprite.Sprite):
         self.death()
 
 class Spawner(pygame.sprite.Sprite):
-    def __init__(self, x, y, enemy_cnt, enemyes, sprites, enemy_attack, enemy_exp, enemy_speed, enemy_hp, items_chance):
+    def __init__(self, x, y, enemy_cnt, enemyes, sprites, enemy_attack, enemy_exp, enemy_speed, enemy_hp, items_chance, materials_chance):
         super().__init__()
         self.items_chance = items_chance
         self.x = x
@@ -220,6 +229,7 @@ class Spawner(pygame.sprite.Sprite):
         self.all_sprites = sprites
         self.t = None
         self.spawns_enemyes = []
+        self.materials_chance = materials_chance
 
     def check_spawn(self):
         if len(self.spawns_enemyes) == 0 and self.t is None:
@@ -227,7 +237,7 @@ class Spawner(pygame.sprite.Sprite):
         if self.t is not None and time.perf_counter() - self.t > 2:
             self.t = None
             for _ in range(self.enemy_cnt):
-                enemy = Enemy(self, self.x + randint(0, self.size - 100), self.y + randint(0, self.size - 100), self.enemy_attack, self.enemy_exp, self.enemy_speed,  self.enemy_hp, self.items_chance)
+                enemy = Enemy(self, self.x + randint(0, self.size - 100), self.y + randint(0, self.size - 100), self.enemy_attack, self.enemy_exp, self.enemy_speed,  self.enemy_hp, self.items_chance, self.materials_chance)
                 self.spawns_enemyes.append(enemy)
                 self.all_sprites.add(enemy)
                 self.all_sprites.add(enemy.hp_bar)
@@ -240,7 +250,7 @@ class Spawner(pygame.sprite.Sprite):
         self.check_spawn()
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, spawner, x, y, attack, exp, speed, hp, items_chance:dict):
+    def __init__(self, spawner, x, y, attack, exp, speed, hp, items_chance:dict, materials_chance):
         super().__init__()
         self.items_chance = items_chance
         self.attack = attack
@@ -263,6 +273,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rec_hp = self.max_hp
         self.hp_bar = HPbar(self, "Brown", x, y - 40 , 80, 20)
         self.attack_area = AttackArea(self, "auto")
+        self.materials_chance = materials_chance
 
     def get_exp(self, hero):
         hero.exp += self.give_exp
@@ -287,9 +298,16 @@ class Enemy(pygame.sprite.Sprite):
 
     def death(self):
         if self.rec_hp <= 0:
+            self.who_attacked.rec_hp +=  int(self.who_attacked.max_hp * 0.2)
             rec_item = choice(list(self.items_chance.keys()))
             if rec_item not in self.who_attacked.inventory.items and randint(1, 100) <= self.items_chance[rec_item]:
                 self.who_attacked.inventory.items.append(rec_item)
+            if randint(1, 100) <= self.materials_chance.chance:
+                if self.materials_chance in self.who_attacked.inventory.materials.keys():
+                    self.who_attacked.inventory.materials[self.materials_chance] += 1
+                else:
+                    self.who_attacked.inventory.materials[self.materials_chance] = 1
+                
 
             self.spawner.spawns_enemyes.remove(self)
             self.kill()
@@ -305,6 +323,17 @@ class Item(pygame.sprite.Sprite):
         super().__init__()
         self.equipped = False
         self.att = att
+        self.texture = texture
+        self.image = pygame.Surface((50, 50))
+        self.rect = self.image.get_rect()
+        self.image.fill(texture)
+
+
+class Material(pygame.sprite.Sprite):
+    def __init__(self, name, chance, texture):
+        super().__init__()
+        self.name = name
+        self.chance = chance
         self.texture = texture
         self.image = pygame.Surface((50, 50))
         self.rect = self.image.get_rect()
