@@ -65,8 +65,10 @@ while run:
             pygame.quit()
             run = False
         if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_i:
-                        hero.inventory.open_close()
+                if event.key == pygame.K_i:
+                    hero.inventory.open_close()
+                if event.key == pygame.K_1:
+                    hero.attack_area.attack()
     screen.fill("BLACK")
     sprites.update()
     for sprite in sprites:
