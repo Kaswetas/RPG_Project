@@ -1,0 +1,50 @@
+[
+    {
+        "name": "boots",
+        "speed": 1.2,
+        "max_hp": 1.3,
+        "attack": 1,
+        "cd_attack": 1,
+        "texture": "WHITE"
+    },
+    {
+        "name": "amulet",
+        "speed": 1,
+        "max_hp": 1.4,
+        "attack": 1,
+        "cd_attack": 0.8,
+        "texture": "PURPLE"
+    },
+    {
+        "name": "scythe",
+        "speed": 1,
+        "max_hp": 1,
+        "attack": 1.4,
+        "cd_attack": 1,
+        "texture": "BLUE"
+    },
+    {
+        "name": "hat",
+        "speed": 1.2,
+        "max_hp": 1.1,
+        "attack": 1,
+        "cd_attack": 0.9,
+        "texture": "YELLOW"
+    },
+    {
+        "name": "voodoo",
+        "speed": 1,
+        "max_hp": 1.2,
+        "attack": 1.4,
+        "cd_attack": 1,
+        "texture": "BROWN"
+    },
+    {
+        "name": "ghost",
+        "speed": 1,
+        "max_hp": 1.1,
+        "attack": 1.4,
+        "cd_attack": 1,
+        "texture": "GREY"
+    }
+]
