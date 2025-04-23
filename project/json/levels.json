@@ -25,15 +25,15 @@
                 "y": 700,
                 "coefficient": 2,
                 "required_materials": {
-                    "iron": 6,
-                    "platinum": 2
+                    "copper": 6,
+                    "bronze": 2
                 }
             }
         },
         {
             "name": "portal",
             "attributes": {
-                "x": 500,
+                "x": 1900,
                 "y": 700,
                 "level_name": "level_1_boss"
             }
@@ -47,11 +47,150 @@
                 "y": 700,
                 "attack": 50,
                 "speed": 1,
-                "hp": 10,
+                "hp": 250,
                 "minion": "enemy_1",
                 "minion_count": 3,
-                "fireball_count": 3,
+                "fireball_count": 0,
                 "level_name": "level_2"
+            }
+        }
+    ],
+    "level_2": [
+        {
+            "name": "spawner",
+            "attributes": {
+                "x": 300,
+                "y": 100,
+                "enemy_cnt": 4,
+                "enemy": "enemy_2"
+            }
+        },
+        {
+            "name": "spawner",
+            "attributes": {
+                "x": 1000,
+                "y": 200,
+                "enemy_cnt": 3,
+                "enemy": "enemy_2"
+            }
+        },
+        {
+            "name": "spawner",
+            "attributes": {
+                "x": 700,
+                "y": 800,
+                "enemy_cnt": 2,
+                "enemy": "enemy_2"
+            }
+        },
+        {
+            "name": "blacksmith",
+            "attributes": {
+                "x": 300,
+                "y": 700,
+                "coefficient": 4,
+                "required_materials": {
+                    "iron": 6,
+                    "steel": 2
+                }
+            }
+        },
+        {
+            "name": "portal",
+            "attributes": {
+                "x": 1900,
+                "y": 700,
+                "level_name": "level_2_boss"
+            }
+        }
+    ],
+    "level_2_boss": [
+        {
+            "name": "boss",
+            "attributes": {
+                "x": 500,
+                "y": 700,
+                "attack": 50,
+                "speed": 1,
+                "hp": 250,
+                "minion": "enemy_2",
+                "minion_count": 0,
+                "fireball_count": 4,
+                "level_name": "level_3"
+            }
+        }
+    ],
+    "level_3": [
+        {
+            "name": "spawner",
+            "attributes": {
+                "x": 300,
+                "y": 100,
+                "enemy_cnt": 5,
+                "enemy": "enemy_3"
+            }
+        },
+        {
+            "name": "spawner",
+            "attributes": {
+                "x": 1000,
+                "y": 200,
+                "enemy_cnt": 4,
+                "enemy": "enemy_3"
+            }
+        },
+        {
+            "name": "spawner",
+            "attributes": {
+                "x": 700,
+                "y": 800,
+                "enemy_cnt": 3,
+                "enemy": "enemy_3"
+            }
+        },
+        {
+            "name": "spawner",
+            "attributes": {
+                "x": 1500,
+                "y": 100,
+                "enemy_cnt": 2,
+                "enemy": "enemy_3"
+            }
+        },
+        {
+            "name": "blacksmith",
+            "attributes": {
+                "x": 300,
+                "y": 700,
+                "coefficient": 8,
+                "required_materials": {
+                    "platinum": 6,
+                    "diamond": 2
+                }
+            }
+        },
+        {
+            "name": "portal",
+            "attributes": {
+                "x": 1900,
+                "y": 700,
+                "level_name": "level_3_boss"
+            }
+        }
+    ],
+    "level_3_boss": [
+        {
+            "name": "boss",
+            "attributes": {
+                "x": 500,
+                "y": 700,
+                "attack": 50,
+                "speed": 1,
+                "hp": 10,
+                "minion": "enemy_3",
+                "minion_count": 3,
+                "fireball_count": 4,
+                "level_name": "end"
             }
         }
     ]

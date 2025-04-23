@@ -2,25 +2,12 @@ import pygame
 import time
 from random import randint, choice
 
-class EXPbar(pygame.sprite.Sprite):
-    def __init__(self, x, y, owner):
-        super().__init__()
-        self.x = x
-        self.y = y
-        self.owner = owner
-        self.procent = int((owner.exp / owner.max_exp) * 1400)
-        self.height = 40
-        self.image = pygame.Surface((self.procent, self.height))
-        self.rect = self.image.get_rect()
-        self.image.fill("YELLOW")
-    
-    def update(self, **kwargs):
-        self.procent = int((self.owner.exp / self.owner.max_exp) * 1200)
-        self.image = pygame.Surface((self.procent, self.height))
-        self.rect = self.image.get_rect()
-        self.image.fill("YELLOW")
-        self.rect.x = self.x
-        self.rect.y = self.y
+def add_texture(surface:pygame.Surface, name):
+    cur_image = pygame.image.load(f"./textures/{name}")
+    width = surface.get_width()
+    height = surface.get_height()
+    cur_image = pygame.transform.scale(cur_image, (width, height))
+    surface.blit(cur_image, (0, 0))
 
 class HPbar(pygame.sprite.Sprite):
     def __init__(self, owner, color, x, y, max_width, height):
@@ -96,7 +83,7 @@ class AttackArea(pygame.sprite.Sprite):
         self.image = pygame.Surface((self.width, self.height))
         self.rect = self.image.get_rect()
         self.image.fill(self.color)
-        self.image.set_alpha(120)
+        self.image.set_alpha(0)
         self.last_pressed_attack = time.perf_counter()
 
     def attack(self):
@@ -109,9 +96,7 @@ class AttackArea(pygame.sprite.Sprite):
                         if self.rect.colliderect(el):
                             el.rec_hp -= self.owner.attack
                             el.who_attacked = self.owner
-                        
-                        # if el.rec_hp <= 0:
-                        #     el.get_exp(self.owner)
+
                     self.last_pressed_attack = time.perf_counter()
             else:
                 self.image.fill("BLACK")
@@ -209,8 +194,6 @@ class Hero(pygame.sprite.Sprite):
         self.cd_attack_default = 1
         self.level = 0
         self.points = 0
-        self.exp = 0
-        self.max_exp = 20
         self.attack = 60
         self.attack_default = 60
         self.enemy_list = enemy_list
@@ -219,16 +202,15 @@ class Hero(pygame.sprite.Sprite):
         self.width = 80
         self.height = 80
         self.color = "WHITE"
-        self.image = pygame.Surface((self.width, self.height))
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        self.image.fill(self.color)
+        add_texture(self.image, "hero.png")
         self.speed = 5
         self.speed_default = 5
         self.max_hp = 100
         self.max_hp_default = 100
         self.rec_hp = 100
         self.rect.move_ip(x, y)
-        self.exp_bar = EXPbar(0, 0, self)
         self.hp_bar = HPbar(self, "GREEN", 0, self.x, 80, 20)
         self.attack_area = AttackArea(self, "player")
         self.camera = [260, -40]
@@ -244,13 +226,6 @@ class Hero(pygame.sprite.Sprite):
         if current_level[-5:] == "_boss":
             current_level = current_level[:-5]
         self.level_changer.change_name(current_level)
-
-    def exp_check(self):
-        if self.exp >= self.max_exp:
-            self.level += 1
-            self.points += 1
-            self.exp = self.exp % self.max_exp
-            self.max_exp = int(self.max_exp * 1.5)
 
     def return_if_collided(self):
         keys = pygame.key.get_pressed()
@@ -296,11 +271,9 @@ class Hero(pygame.sprite.Sprite):
         self.x = self.rect.x
         self.y = self.rect.y
         self.attack_area.update()
-        self.exp_check()
         self.regenerate()
         self.move()
         self.hp_bar.update()
-        self.exp_bar.update()
         self.death()
 
 class Spawner(pygame.sprite.Sprite):
@@ -342,25 +315,24 @@ class Spawner(pygame.sprite.Sprite):
         self.check_spawn()
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, attack, exp, speed, hp, items_chance:dict, materials_chance:dict):
+    def __init__(self, attack, speed, hp, texture, items_chance:dict, materials_chance:dict):
         super().__init__()
         self.items_chance = items_chance
         self.attack = attack
         self.who_attacked = None
-        self.give_exp = exp
         self.speed = speed
         self.width = 80
         self.height = 80
         self.cd_attack = 1.5
-        self.color = "RED"
+        self.texture = texture
         self.max_hp = hp
         self.rec_hp = self.max_hp
         self.materials_chance = materials_chance
 
     def spawn(self, spawner, x, y):
-        self.image = pygame.Surface((self.width, self.height))
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        self.image.fill(self.color)
+        add_texture(self.image, self.texture)
         self.attack_area = AttackArea(self, "auto")
         self.spawner = spawner
         self.x = x
@@ -368,9 +340,6 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
         self.hp_bar = HPbar(self, "Brown", x, y - 40 , 80, 20)
-
-    def get_exp(self, hero):
-        hero.exp += self.give_exp
 
     def follow_and_check(self):
         if self.who_attacked is not None:
@@ -415,9 +384,9 @@ class Minion(Enemy):
         super().__init__(*args, **kwargs)
 
     def spawn(self, x, y):
-        self.image = pygame.Surface((self.width, self.height))
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        self.image.fill(self.color)
+        add_texture(self.image, "placeholder.png")
         self.attack_area = AttackArea(self, "auto")
         self.x = x
         self.y = y
@@ -447,9 +416,9 @@ class Fireball(Enemy):
         super().__init__(*args, **kwargs)
 
     def spawn(self, x, y):
-        self.image = pygame.Surface((self.width, self.height))
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        self.image.fill("YELLOW")
+        add_texture(self.image, "hat.png")
         self.attack_area = AttackArea(self, "auto")
         self.x = x
         self.y = y
@@ -490,9 +459,9 @@ class Boss(pygame.sprite.Sprite):
         self.level_name = level_name
         self.level_changer = level_changer
         self.who_attacked = player
-        self.image = pygame.Surface((100, 100))
+        self.image = pygame.Surface((100, 100), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        self.image.fill("BROWN")
+        add_texture(self.image, "heroin_shadow.png")
         self.attack_area = AttackArea(self, "auto")
         self.x = x
         self.y = y
@@ -518,11 +487,10 @@ class Boss(pygame.sprite.Sprite):
         self.last_spawned = time.perf_counter()
     
     def spawn_fireballs(self):
-        print("SPAWNED")
         for _ in range(self.fireball_count):
             random_x = self.x + randint(-300, 300)
             random_y = self.y + randint(-300, 300)
-            enemy = Fireball(10000, 0, 2, 100, dict(), dict())
+            enemy = Fireball(10000, 2, 100, "hat.png", dict(), dict())
             enemy.spawn(random_x, random_y)
             enemy.who_attacked = self.player
             self.all_sprites.add(enemy)
@@ -559,6 +527,8 @@ class Boss(pygame.sprite.Sprite):
         self.all_sprites.add(portal)
 
     def update(self, **kwargs):
+        self.x = self.rect.x
+        self.y = self.rect.y
         self.follow_and_check()
         self.attack_area.update()
         self.random_attack()
@@ -570,8 +540,8 @@ class Blacksmith(pygame.sprite.Sprite):
         self.required_materials = required_materials
         self.player = player
         self.traded = False
-        self.image = pygame.surface.Surface((80, 80))
-        self.image.fill("BLUE")
+        self.image = pygame.surface.Surface((80, 80), pygame.SRCALPHA)
+        add_texture(self.image, "placeholder.png")
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -610,8 +580,8 @@ class Blacksmith(pygame.sprite.Sprite):
 class Portal(pygame.sprite.Sprite):
     def __init__(self, x, y, level_name, level_changer, player):
         super().__init__()
-        self.image = pygame.surface.Surface((80, 80))
-        self.image.fill("GREEN")
+        self.image = pygame.surface.Surface((80, 80), pygame.SRCALPHA)
+        add_texture(self.image, "placeholder.png")
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -630,34 +600,34 @@ class Portal(pygame.sprite.Sprite):
             return
         self.level_changer.change_name(self.level_name)
 
-class Item(pygame.sprite.Sprite):
-    def __init__(self, att:dict, texture):
-        super().__init__()
-        self.equipped = False
-        self.att = att
-        self.texture = texture
-        self.image = pygame.Surface((50, 50))
-        self.rect = self.image.get_rect()
-        self.image.fill(texture)
-
 class Wall(pygame.sprite.Sprite):
     def __init__(self, x, y, height, width, wall_list):
         super().__init__()
-        self.image = pygame.Surface((width, height))
+        self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         self.image.fill("GREY")
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
         wall_list.add(self)
 
+class Item(pygame.sprite.Sprite):
+    def __init__(self, att:dict, texture):
+        super().__init__()
+        self.equipped = False
+        self.att = att
+        self.texture = texture
+        self.image = pygame.Surface((50, 50), pygame.SRCALPHA)
+        self.rect = self.image.get_rect()
+        add_texture(self.image, self.texture)
+
 class Material(pygame.sprite.Sprite):
     def __init__(self, name, texture):
         super().__init__()
         self.name = name
         self.texture = texture
-        self.image = pygame.Surface((50, 50))
+        self.image = pygame.Surface((50, 50), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        self.image.fill(texture)
+        add_texture(self.image, self.texture)
 
 class CurrentLevel():
     # a way to pass the current level's name to other classes and let them change it

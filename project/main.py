@@ -10,13 +10,12 @@ pygame.display.set_icon(pygame.image.load("others/ну тупо я.webp"))
 clock = pygame.time.Clock()
 sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
-# items = pygame.sprite.Group()
 walls = pygame.sprite.Group()
 notification = classes.Notificationbar()
 current_level = classes.CurrentLevel("level_1")
 hero = classes.Hero(300, 400, enemies, walls, current_level)
-debug = classes.Debugbar(hero)
-gui_classes = [classes.EXPbar, classes.Inventory, classes.Debugbar, classes.Notificationbar]
+# debug = classes.Debugbar(hero)
+gui_classes = [classes.Inventory, classes.Debugbar, classes.Notificationbar]
 items_dict = dict()
 enemy_dict = dict()
 material_dict = dict()
@@ -31,7 +30,6 @@ def load_items():
             "attack": item["attack"],
             "cd_attack": item["cd_attack"]
         }, item["texture"])
-        # items.add(item_sprite)
         items_dict[item["name"]] = item_sprite
 
 
@@ -51,7 +49,9 @@ def load_materials():
 
 def load_enemies():
     global enemy_dict
-    enemy_dict["enemy_1"] = (10, 10, 2, 100, {items_dict["boots"]: 50, items_dict["amulet"]: 30}, {material_dict["iron"]: 50, material_dict["platinum"]: 30})
+    enemy_dict["enemy_1"] = (10, 2, 100, "heroin_shadow.png", {items_dict["boots"]: 50, items_dict["amulet"]: 30}, {material_dict["copper"]: 50, material_dict["bronze"]: 30})
+    enemy_dict["enemy_2"] = (15, 2, 100, "heroin_shadow.png", {items_dict["scythe"]: 50, items_dict["hat"]: 30}, {material_dict["iron"]: 50, material_dict["steel"]: 30})
+    enemy_dict["enemy_3"] = (20, 2, 100, "heroin_shadow.png", {items_dict["voodoo"]: 50, items_dict["ghost"]: 30}, {material_dict["platinum"]: 50, material_dict["diamond"]: 30})
 
 def load_walls():
     walls.add(classes.Wall(0, 0, 30, 2200, walls))
@@ -95,11 +95,10 @@ def load_level(level_name):
     hero.camera[1] = -40
 
     sprites.add(hero)
-    sprites.add(hero.exp_bar)
     sprites.add(hero.hp_bar)
     sprites.add(hero.attack_area)
     sprites.add(hero.inventory)
-    sprites.add(debug)
+    # sprites.add(debug)
     sprites.add(notification)
 
 def main():
@@ -111,6 +110,10 @@ def main():
     run = True
     while run:
         if current_level.changed:
+            if current_level.level_name == "end":
+                pygame.quit()
+                run = False
+                break
             load_level(current_level.level_name)
             current_level.changed = False
         for event in pygame.event.get():

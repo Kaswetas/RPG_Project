@@ -5,7 +5,7 @@
         "max_hp": 1.3,
         "attack": 1,
         "cd_attack": 1,
-        "texture": "WHITE"
+        "texture": "placeholder.png"
     },
     {
         "name": "amulet",
@@ -13,7 +13,7 @@
         "max_hp": 1.4,
         "attack": 1,
         "cd_attack": 0.8,
-        "texture": "PURPLE"
+        "texture": "placeholder.png"
     },
     {
         "name": "scythe",
@@ -21,7 +21,7 @@
         "max_hp": 1,
         "attack": 1.4,
         "cd_attack": 1,
-        "texture": "BLUE"
+        "texture": "scythe.png"
     },
     {
         "name": "hat",
@@ -29,7 +29,7 @@
         "max_hp": 1.1,
         "attack": 1,
         "cd_attack": 0.9,
-        "texture": "YELLOW"
+        "texture": "hat.png"
     },
     {
         "name": "voodoo",
@@ -37,7 +37,7 @@
         "max_hp": 1.2,
         "attack": 1.4,
         "cd_attack": 1,
-        "texture": "BROWN"
+        "texture": "voodoo.png"
     },
     {
         "name": "ghost",
@@ -45,6 +45,6 @@
         "max_hp": 1.1,
         "attack": 1.4,
         "cd_attack": 1,
-        "texture": "GREY"
+        "texture": "ghost.png"
     }
 ]
