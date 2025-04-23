@@ -2,6 +2,7 @@ import pygame
 import time
 from random import randint, choice
 
+
 class EXPbar(pygame.sprite.Sprite):
     def __init__(self, x, y, owner):
         super().__init__()
@@ -338,3 +339,90 @@ class Material(pygame.sprite.Sprite):
         self.image = pygame.Surface((50, 50))
         self.rect = self.image.get_rect()
         self.image.fill(texture)
+
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, enemy, speed):
+        super().__init__()
+        self.enemy = enemy
+        self.x = x
+        self.y = y
+        self.width = 30
+        self.height = 30
+        self.speed = speed
+        self.speed.normalize()
+        self.speed.scale_to_length(2)
+        self.image = pygame.Surface((self.width, self.height))
+        self.rect = self.image.get_rect()
+        self.image.fill('gold')
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+    def update(self):
+        self.rect.move_ip(self.speed)
+
+
+class AutoBullet(pygame.sprite.Sprite):
+    def __init__(self, x, y, enemy, group):
+        super().__init__()
+        self.group = group
+        self.enemy = enemy
+        self.x = x
+        self.y = y
+        self.width = 30
+        self.height = 30
+        self.image = pygame.Surface((self.width, self.height))
+        self.rect = self.image.get_rect()
+        self.image.fill('gold')
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+    def update(self):
+        dirvect = pygame.math.Vector2(self.enemy.rect.x - self.rect.x,
+                                      self.enemy.rect.y - self.rect.y)
+        dirvect.normalize()
+        dirvect.scale_to_length(2)
+        self.rect.move_ip(dirvect)
+
+
+class Boss(pygame.sprite.Sprite):
+    def __init__(self, attack, x, y, hero):
+        super().__init__()
+        self.attack = attack
+        self.who_attacked = hero
+        self.auto_bullet_group = pygame.sprite.Group()
+        self.x = x
+        self.y = y
+        self.width = 120
+        self.height = 120
+        self.cd_attack = 2
+        self.color = "darkred"
+        self.image = pygame.Surface((self.width, self.height))
+        self.rect = self.image.get_rect()
+        self.image.fill(self.color)
+        self.rect.x = self.x
+        self.rect.y = self.y
+        self.max_hp = 1000
+        self.rec_hp = self.max_hp
+        self.hp_bar = HPbar(self, "Brown", x, y - 40, 80, 20)
+
+    def death(self):
+        if self.rec_hp <= 0:
+            self.kill()
+
+    def attack_1(self):
+        pass
+        #  я не смог реализовать нормально появление пуль по кругу(обычных)
+
+    def attack_2(self):
+        for i in range(10):
+            auto_bull = AutoBullet(self.x, self.y, self.who_attacked, self.auto_bullet_group)
+            self.auto_bullet_group.add(auto_bull)
+
+    def attack_3(self):
+        pass
+        #  я не придумал других атак
+
+
+
+
