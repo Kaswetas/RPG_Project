@@ -120,11 +120,11 @@ class Inventory(pygame.sprite.Sprite):
     def __init__(self, owner):
         super().__init__()
         self.owner = owner
-        self.image = pygame.Surface((800, 600))
+        self.image = pygame.Surface((800, 600), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.x = 300
         self.rect.y = 100
-        self.image.fill("BROWN")
+        add_texture(self.image, "inventory_background.png")
         self.items = []
         self.materials = {}
         self.length = 0
@@ -165,7 +165,8 @@ class Inventory(pygame.sprite.Sprite):
         x = 20
         y = 20
 
-        self.image.fill("BROWN")
+        add_texture(self.image, "inventory_background.png")
+
         for i in range(self.length):
             if i % 3 == 0:
                 x = 20
@@ -581,7 +582,7 @@ class Portal(pygame.sprite.Sprite):
     def __init__(self, x, y, level_name, level_changer, player):
         super().__init__()
         self.image = pygame.surface.Surface((80, 80), pygame.SRCALPHA)
-        add_texture(self.image, "placeholder.png")
+        add_texture(self.image, "portal.png")
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -628,6 +629,13 @@ class Material(pygame.sprite.Sprite):
         self.image = pygame.Surface((50, 50), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
         add_texture(self.image, self.texture)
+
+class Background(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((2200, 1200), pygame.SRCALPHA)
+        add_texture(self.image, "background.png")
+        self.rect = self.image.get_rect()
 
 class CurrentLevel():
     # a way to pass the current level's name to other classes and let them change it
