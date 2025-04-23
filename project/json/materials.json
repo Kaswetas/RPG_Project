@@ -1,0 +1,10 @@
+[
+    {
+        "name": "iron",
+        "texture": "WHITE"
+    },
+    {
+        "name": "platinum",
+        "texture": "BLACK"
+    }
+]

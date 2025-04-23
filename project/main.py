@@ -10,7 +10,7 @@ pygame.display.set_icon(pygame.image.load("others/ну тупо я.webp"))
 clock = pygame.time.Clock()
 sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
-items = pygame.sprite.Group()
+# items = pygame.sprite.Group()
 walls = pygame.sprite.Group()
 notification = classes.Notificationbar()
 current_level = classes.CurrentLevel("level_1")
@@ -31,7 +31,7 @@ def load_items():
             "attack": item["attack"],
             "cd_attack": item["cd_attack"]
         }, item["texture"])
-        items.add(item_sprite)
+        # items.add(item_sprite)
         items_dict[item["name"]] = item_sprite
 
 
@@ -39,8 +39,13 @@ def load_items():
 
 def load_materials():
     global material_dict
-    material_dict["iron"] = classes.Material("IRON", "WHITE")
-    material_dict["platinum"] = classes.Material("PLATINUM", "BLACK")
+    # material_dict["iron"] = classes.Material("IRON", "WHITE")
+    # material_dict["platinum"] = classes.Material("PLATINUM", "BLACK")
+    with open("./project/json/materials.json") as materials_file:
+        materials_list = json.load(materials_file)
+    for material in materials_list:
+        cur_sprite = classes.Material(material["name"], material["texture"])
+        material_dict[material["name"]] = cur_sprite
 
 #-----------------------OTHER-------------------------
 
