@@ -50,6 +50,41 @@ class HPbar(pygame.sprite.Sprite):
         self.rect.x = self.owner.rect.x
         self.rect.y = self.owner.rect.y - 40
 
+class Debugbar(pygame.sprite.Sprite):
+    def __init__(self, owner):
+        super().__init__()
+        self.owner = owner
+        self.font = pygame.font.SysFont('Arial', 20)
+        self.image = self.font.render('', False, (255, 255, 255))
+        self.rect = self.image.get_rect()
+        self.text = ''
+
+    def update(self, **kwargs):
+        self.text = f'max_hp: {self.owner.max_hp}; rec_hp: {self.owner.rec_hp}'
+        self.image = self.font.render(self.text, False, (255, 255, 255))
+        self.rect = self.image.get_rect()
+
+class Notificationbar(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.font = pygame.font.SysFont('Arial', 20)
+        self.image = self.font.render('', False, (255, 255, 255))
+        self.rect = self.image.get_rect()
+        self.rect.x = 650
+        self.alpha = 0
+        self.image.set_alpha(self.alpha)
+    
+    def set_text(self, text):
+        self.image = self.font.render(text, False, (255, 255, 255))
+        self.rect = self.image.get_rect()
+        self.rect.x = 650
+        self.alpha = 255
+        self.image.set_alpha(self.alpha)
+
+    def update(self):
+        self.alpha = max(self.alpha - 5, 0)
+        self.image.set_alpha(self.alpha)
+
 class AttackArea(pygame.sprite.Sprite):
     def __init__(self, owner, attack_type):
         super().__init__()
@@ -75,8 +110,8 @@ class AttackArea(pygame.sprite.Sprite):
                             el.rec_hp -= self.owner.attack
                             el.who_attacked = self.owner
                         
-                        if el.rec_hp <= 0:
-                            el.get_exp(self.owner)
+                        # if el.rec_hp <= 0:
+                        #     el.get_exp(self.owner)
                     self.last_pressed_attack = time.perf_counter()
             else:
                 self.image.fill("BLACK")
@@ -114,6 +149,9 @@ class Inventory(pygame.sprite.Sprite):
         self.selected_item = 0
         self.selection_surface = pygame.Surface((60, 60))
         self.selection_surface.fill((228, 242, 27))
+        self.material_counter_surface = pygame.Surface((20, 14))
+        self.material_counter_surface.fill("RED")
+        self.material_counter_font = pygame.font.SysFont("Arial", 12, True)
         
     def open_close(self):
         if not self.open:
@@ -150,16 +188,19 @@ class Inventory(pygame.sprite.Sprite):
             x += 70
             if i == self.selected_item:
                 self.image.blit(self.selection_surface, (x - 5, y - 5))
-            self.image.blit(self.items[i].image, (x, y))
+            self.image.blit(self.items[i].image, (x, y))         
         
         x = 20
         y = 500
-        for keys, value in enumerate(self.materials):
-            self.image.blit(value.image, (x, y))
+
+        for keys, value in self.materials.items():
+            self.image.blit(keys.image, (x, y))
+            self.image.blit(self.material_counter_surface, (x, y))
+            self.image.blit(self.material_counter_font.render(str(value), False, "WHITE"), (x, y))
             x += 70
 
 class Hero(pygame.sprite.Sprite):
-    def __init__(self, x, y, enemy_list):
+    def __init__(self, x, y, enemy_list, wall_list, level_changer):
         super().__init__()
         self.inventory = Inventory(self)
         self.x = x
@@ -173,6 +214,8 @@ class Hero(pygame.sprite.Sprite):
         self.attack = 60
         self.attack_default = 60
         self.enemy_list = enemy_list
+        self.wall_list = wall_list
+        self.level_changer = level_changer
         self.width = 80
         self.height = 80
         self.color = "WHITE"
@@ -189,12 +232,18 @@ class Hero(pygame.sprite.Sprite):
         self.hp_bar = HPbar(self, "GREEN", 0, self.x, 80, 20)
         self.attack_area = AttackArea(self, "player")
         self.camera = [260, -40]
+        self.last_healed = 0
     
     def death(self):
-        if self.rec_hp <= 0:
-            self.kill()
         if self.rec_hp > self.max_hp:
             self.rec_hp = self.max_hp
+        if self.rec_hp > 0:
+            return
+        self.rec_hp = self.max_hp
+        current_level = self.level_changer.level_name
+        if current_level[-5:] == "_boss":
+            current_level = current_level[:-5]
+        self.level_changer.change_name(current_level)
 
     def exp_check(self):
         if self.exp >= self.max_exp:
@@ -202,6 +251,21 @@ class Hero(pygame.sprite.Sprite):
             self.points += 1
             self.exp = self.exp % self.max_exp
             self.max_exp = int(self.max_exp * 1.5)
+
+    def return_if_collided(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_a]:
+            self.rect.move_ip(self.speed, 0)
+            self.camera[0] -= self.speed
+        if keys[pygame.K_d]:
+            self.rect.move_ip(-self.speed, 0)
+            self.camera[0] += self.speed
+        if keys[pygame.K_w]:
+            self.rect.move_ip(0, self.speed)
+            self.camera[1] -= self.speed
+        if keys[pygame.K_s]:
+            self.rect.move_ip(0, -self.speed)
+            self.camera[1] += self.speed
 
     def move(self):
         keys = pygame.key.get_pressed()
@@ -218,11 +282,22 @@ class Hero(pygame.sprite.Sprite):
             self.rect.move_ip(0, self.speed)
             self.camera[1] -= self.speed
         
+        for wall in self.wall_list:
+            if pygame.Rect.colliderect(wall.rect, self.rect):
+                self.return_if_collided()
+                return
+    
+    def regenerate(self):
+        if time.perf_counter() - self.last_healed >= 2:
+            self.last_healed = time.perf_counter()
+            self.rec_hp = min(self.max_hp, self.rec_hp + 10)
+
     def update(self, **kwargs):
         self.x = self.rect.x
         self.y = self.rect.y
         self.attack_area.update()
         self.exp_check()
+        self.regenerate()
         self.move()
         self.hp_bar.update()
         self.exp_bar.update()
@@ -241,9 +316,9 @@ class Spawner(pygame.sprite.Sprite):
         self.image.set_alpha(50)
         self.t = None
         self.enemies_spawned = 0
+        self.enemy_list = enemy_list
         self.all_sprites = all_sprites
         self.enemy = enemy
-        self.enemy_list = enemy_list
 
     def check_spawn(self):
         if self.enemies_spawned == 0 and self.t is None:
@@ -255,10 +330,10 @@ class Spawner(pygame.sprite.Sprite):
                 random_y = self.y + randint(0, self.size - 100)
                 enemy = Enemy(*self.enemy)
                 enemy.spawn(self, random_x, random_y)
-                self.enemy_list.add(enemy)
                 self.all_sprites.add(enemy)
                 self.all_sprites.add(enemy.hp_bar)
                 self.all_sprites.add(enemy.attack_area)
+                self.enemy_list.add(enemy)
                 self.enemies_spawned += 1
     
     def update(self, **kwargs):
@@ -335,6 +410,226 @@ class Enemy(pygame.sprite.Sprite):
         self.death()
         self.attack_area.update()
 
+class Minion(Enemy):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def spawn(self, x, y):
+        self.image = pygame.Surface((self.width, self.height))
+        self.rect = self.image.get_rect()
+        self.image.fill(self.color)
+        self.attack_area = AttackArea(self, "auto")
+        self.x = x
+        self.y = y
+        self.rect.x = x
+        self.rect.y = y
+        self.hp_bar = HPbar(self, "Brown", x, y - 40 , 80, 20)
+    
+    def follow_and_check(self):
+        if self.who_attacked is not None:
+            if self.who_attacked.rect.x > self.rect.x:
+                self.rect.x += self.speed
+            elif self.who_attacked.rect.x < self.rect.x:
+                self.rect.x -= self.speed
+            
+            if self.who_attacked.rect.y > self.rect.y:
+                self.rect.y += self.speed
+            elif self.who_attacked.rect.y < self.rect.y:
+                self.rect.y -= self.speed
+
+    def death(self):
+        if self.rec_hp > 0:
+            return
+        self.kill()
+
+class Fireball(Enemy):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def spawn(self, x, y):
+        self.image = pygame.Surface((self.width, self.height))
+        self.rect = self.image.get_rect()
+        self.image.fill("YELLOW")
+        self.attack_area = AttackArea(self, "auto")
+        self.x = x
+        self.y = y
+        self.rect.x = x
+        self.rect.y = y
+        self.hp_bar = HPbar(self, "Brown", x, y - 40 , 80, 20)
+    
+    def follow_and_check(self):
+        if self.who_attacked is not None:
+            if self.who_attacked.rect.x > self.rect.x:
+                self.rect.x += self.speed
+            elif self.who_attacked.rect.x < self.rect.x:
+                self.rect.x -= self.speed
+            
+            if self.who_attacked.rect.y > self.rect.y:
+                self.rect.y += self.speed
+            elif self.who_attacked.rect.y < self.rect.y:
+                self.rect.y -= self.speed
+
+    def death(self):
+        self.rec_hp -= self.max_hp / 350
+        if self.rec_hp > 0:
+            return
+        self.kill()
+
+class Boss(pygame.sprite.Sprite):
+    def __init__(self, x, y, attack, speed, hp, minion, minion_count, fireball_count, level_name, level_changer, player, all_sprites):
+        super().__init__()
+        self.attack = attack
+        self.max_hp = hp
+        self.rec_hp = hp
+        self.speed = speed
+        self.cd_attack = 1
+        self.attack_area = AttackArea(self, "auto")
+        self.minion = minion
+        self.minion_count = minion_count
+        self.fireball_count = fireball_count
+        self.level_name = level_name
+        self.level_changer = level_changer
+        self.who_attacked = player
+        self.image = pygame.Surface((100, 100))
+        self.rect = self.image.get_rect()
+        self.image.fill("BROWN")
+        self.attack_area = AttackArea(self, "auto")
+        self.x = x
+        self.y = y
+        self.rect.x = x
+        self.rect.y = y
+        self.hp_bar = HPbar(self, "YELLOW", x, y - 40 , 80, 20)
+        self.last_spawned = 0
+        self.all_sprites = all_sprites
+        self.player = player
+        all_sprites.add(self.hp_bar)
+        player.enemy_list.add(self)
+    
+    def spawn_minions(self):
+        for _ in range(self.minion_count):
+            random_x = self.x + randint(-300, 300)
+            random_y = self.y + randint(-300, 300)
+            enemy = Minion(*self.minion)
+            enemy.spawn(random_x, random_y)
+            enemy.who_attacked = self.player
+            self.all_sprites.add(enemy)
+            self.all_sprites.add(enemy.hp_bar)
+            self.player.enemy_list.add(enemy)
+        self.last_spawned = time.perf_counter()
+    
+    def spawn_fireballs(self):
+        print("SPAWNED")
+        for _ in range(self.fireball_count):
+            random_x = self.x + randint(-300, 300)
+            random_y = self.y + randint(-300, 300)
+            enemy = Fireball(10000, 0, 2, 100, dict(), dict())
+            enemy.spawn(random_x, random_y)
+            enemy.who_attacked = self.player
+            self.all_sprites.add(enemy)
+            self.all_sprites.add(enemy.hp_bar)
+            self.player.enemy_list.add(enemy)
+        self.last_spawned = time.perf_counter()
+
+    def follow_and_check(self):
+        if self.who_attacked is not None:
+            if self.who_attacked.rect.x > self.rect.x:
+                self.rect.x += self.speed
+            elif self.who_attacked.rect.x < self.rect.x:
+                self.rect.x -= self.speed
+            
+            if self.who_attacked.rect.y > self.rect.y:
+                self.rect.y += self.speed
+            elif self.who_attacked.rect.y < self.rect.y:
+                self.rect.y -= self.speed
+
+    def random_attack(self):
+        if time.perf_counter() - self.last_spawned < 10:
+            return
+        random_attack = randint(1, 2)
+        if random_attack == 1:
+            self.spawn_minions()
+        else:
+            self.spawn_fireballs()
+
+    def death(self):
+        if self.rec_hp > 0:
+            return
+        self.kill()
+        portal = Portal(self.rect.x, self.rect.y, self.level_name, self.level_changer, self.player)
+        self.all_sprites.add(portal)
+
+    def update(self, **kwargs):
+        self.follow_and_check()
+        self.attack_area.update()
+        self.random_attack()
+        self.death()
+
+class Blacksmith(pygame.sprite.Sprite):
+    def __init__(self, x, y, coefficient, required_materials:dict, player, notification):
+        super().__init__()
+        self.required_materials = required_materials
+        self.player = player
+        self.traded = False
+        self.image = pygame.surface.Surface((80, 80))
+        self.image.fill("BLUE")
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.coefficient = coefficient
+        self.notification = notification
+        self.traded_time = 0
+
+    def check_collision(self):
+        return pygame.Rect.colliderect(self.rect, self.player.rect)
+
+    def update(self):
+        if not self.check_collision():
+            return
+        keys = pygame.key.get_pressed()
+        if not keys[pygame.K_e]:
+            return
+        if time.perf_counter() - self.traded_time < 1:
+            return
+        if self.traded:
+            self.notification.set_text("You have already traded")
+            return
+        for material, count in self.required_materials.items():
+            if self.player.inventory.materials.get(material, 0) < count:
+                self.notification.set_text("Insufficient items")
+                return
+        self.traded = True
+        for material, count in self.required_materials.items():
+            self.player.inventory.materials[material] -= count
+            if self.player.inventory.materials[material] == 0:
+                self.player.inventory.materials.pop(material, None)
+        self.player.max_hp_default = 100 * self.coefficient
+        self.player.attack_default = 60 * self.coefficient
+        self.notification.set_text("Equipment acquired")
+        self.traded_time = time.perf_counter()
+
+class Portal(pygame.sprite.Sprite):
+    def __init__(self, x, y, level_name, level_changer, player):
+        super().__init__()
+        self.image = pygame.surface.Surface((80, 80))
+        self.image.fill("GREEN")
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.level_name = level_name
+        self.level_changer = level_changer
+        self.player = player
+    
+    def check_collision(self):
+        return pygame.Rect.colliderect(self.rect, self.player.rect)
+
+    def update(self):
+        if not self.check_collision():
+            return
+        keys = pygame.key.get_pressed()
+        if not keys[pygame.K_e]:
+            return
+        self.level_changer.change_name(self.level_name)
+
 class Item(pygame.sprite.Sprite):
     def __init__(self, att:dict, texture):
         super().__init__()
@@ -345,6 +640,16 @@ class Item(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.image.fill(texture)
 
+class Wall(pygame.sprite.Sprite):
+    def __init__(self, x, y, height, width, wall_list):
+        super().__init__()
+        self.image = pygame.Surface((width, height))
+        self.image.fill("GREY")
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        wall_list.add(self)
+
 class Material(pygame.sprite.Sprite):
     def __init__(self, name, texture):
         super().__init__()
@@ -353,3 +658,14 @@ class Material(pygame.sprite.Sprite):
         self.image = pygame.Surface((50, 50))
         self.rect = self.image.get_rect()
         self.image.fill(texture)
+
+class CurrentLevel():
+    # a way to pass the current level's name to other classes and let them change it
+    # changing the name of the level loads the other level
+    def __init__(self, level_name):
+        self.level_name = level_name
+        self.changed = False
+    
+    def change_name(self, level_name):
+        self.level_name = level_name
+        self.changed = True

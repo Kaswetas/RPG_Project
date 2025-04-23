@@ -1,0 +1,58 @@
+{
+    "level_1": [
+        {
+            "name": "spawner",
+            "attributes": {
+                "x": 100,
+                "y": 100,
+                "enemy_cnt": 3,
+                "enemy": "enemy_1"
+            }
+        },
+        {
+            "name": "spawner",
+            "attributes": {
+                "x": 700,
+                "y": 200,
+                "enemy_cnt": 2,
+                "enemy": "enemy_1"
+            }
+        },
+        {
+            "name": "blacksmith",
+            "attributes": {
+                "x": 300,
+                "y": 700,
+                "coefficient": 2,
+                "required_materials": {
+                    "iron": 6,
+                    "platinum": 2
+                }
+            }
+        },
+        {
+            "name": "portal",
+            "attributes": {
+                "x": 500,
+                "y": 700,
+                "level_name": "level_1_boss"
+            }
+        }
+    ],
+    "level_1_boss": [
+        {
+            "name": "boss",
+            "attributes": {
+                "x": 500,
+                "y": 700,
+                "attack": 50,
+                "speed": 1,
+                "hp": 10,
+                "minion": "enemy_1",
+                "minion_count": 3,
+                "fireball_count": 3,
+                "level_name": "level_2"
+            }
+        }
+    ]
+}

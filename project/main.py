@@ -1,10 +1,3 @@
-# self.cd_attack = 1
-# self.attack = 60
-# self.speed = 5
-# self.max_hp = 100
-# self.rec_hp = 100
-
-
 import pygame
 import classes
 import time
@@ -18,9 +11,15 @@ clock = pygame.time.Clock()
 sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 items = pygame.sprite.Group()
-hero = classes.Hero(300, 400, enemies)
+walls = pygame.sprite.Group()
+notification = classes.Notificationbar()
+current_level = classes.CurrentLevel("level_1")
+hero = classes.Hero(300, 400, enemies, walls, current_level)
+debug = classes.Debugbar(hero)
+gui_classes = [classes.EXPbar, classes.Inventory, classes.Debugbar, classes.Notificationbar]
 items_dict = dict()
-enemy_list = []
+enemy_dict = dict()
+material_dict = dict()
 
 def load_items():
     with open("./project/json/items.json") as items_file:
@@ -38,23 +37,52 @@ def load_items():
 
 #-----------------------MATERIALS---------------------
 
-iron = classes.Material("IRON", "WHITE")
-
-platina = classes.Material("PLATINA", "BLACK")
+def load_materials():
+    global material_dict
+    material_dict["iron"] = classes.Material("IRON", "WHITE")
+    material_dict["platinum"] = classes.Material("PLATINUM", "BLACK")
 
 #-----------------------OTHER-------------------------
 
 def load_enemies():
-    global enemy_list
-    enemy_list.append((10, 10, 2, 100, {items_dict["boots"]: 50, items_dict["amulet"]: 30}, {iron: 50}))
+    global enemy_dict
+    enemy_dict["enemy_1"] = (10, 10, 2, 100, {items_dict["boots"]: 50, items_dict["amulet"]: 30}, {material_dict["iron"]: 50, material_dict["platinum"]: 30})
 
-def load_level():
-    global hero, sprites, enemy_list
+def load_walls():
+    walls.add(classes.Wall(0, 0, 30, 2200, walls))
+    walls.add(classes.Wall(0, 1200, 30, 2200, walls))
+    walls.add(classes.Wall(0, 0, 1200, 30, walls))
+    walls.add(classes.Wall(2200, 0, 1200, 30, walls))
+    for wall in walls:
+        sprites.add(walls)
+
+def load_level(level_name):
+    global hero, sprites, enemy_list, debug, notification
     sprites = pygame.sprite.Group()
-    spawner1 = classes.Spawner(100, 100, 3, enemy_list[0], enemies, sprites)
-    spawner2 = classes.Spawner(700, 200, 2, enemy_list[0], enemies, sprites)
-    sprites.add(spawner1)
-    sprites.add(spawner2)
+
+    with open("./project/json/levels.json") as levels_file:
+        levels = json.load(levels_file)
+    level = levels[level_name]
+
+    for sprite in level:
+        cur_sprite = None
+        if sprite["name"] == "spawner":
+            sprite["attributes"]["enemy"] = enemy_dict[sprite["attributes"]["enemy"]]
+            cur_sprite = classes.Spawner(**sprite["attributes"], enemy_list=enemies, all_sprites=sprites)
+        if sprite["name"] == "blacksmith":
+            required_materials = dict()
+            for material_name, count in sprite["attributes"]["required_materials"].items():
+                required_materials[material_dict[material_name]] = count
+            sprite["attributes"]["required_materials"] = required_materials
+            cur_sprite = classes.Blacksmith(**sprite["attributes"], player=hero, notification=notification)
+        if sprite["name"] == "portal":
+            cur_sprite = classes.Portal(**sprite["attributes"], level_changer=current_level, player=hero)
+        if sprite["name"] == "boss":
+            sprite["attributes"]["minion"] = enemy_dict[sprite["attributes"]["minion"]]
+            cur_sprite = classes.Boss(**sprite["attributes"], level_changer=current_level, player=hero, all_sprites=sprites)
+        sprites.add(cur_sprite)
+
+    load_walls()
 
     hero.rect.x = 300
     hero.rect.y = 400
@@ -66,13 +94,20 @@ def load_level():
     sprites.add(hero.hp_bar)
     sprites.add(hero.attack_area)
     sprites.add(hero.inventory)
+    sprites.add(debug)
+    sprites.add(notification)
 
 def main():
+    pygame.font.init()
     load_items()
+    load_materials()
     load_enemies()
-    load_level()
+    load_level("level_1")
     run = True
     while run:
+        if current_level.changed:
+            load_level(current_level.level_name)
+            current_level.changed = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -102,7 +137,7 @@ def main():
         screen.fill("BLACK")
         sprites.update()
         for sprite in sprites:
-            if type(sprite) == classes.EXPbar or type(sprite) == classes.Inventory:
+            if type(sprite) in gui_classes:
                 screen.blit(sprite.image, sprite.rect.topleft)
                 continue
             screen.blit(sprite.image, (sprite.rect.x + hero.camera[0], sprite.rect.y + hero.camera[1]))
