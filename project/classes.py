@@ -419,7 +419,7 @@ class Fireball(Enemy):
     def spawn(self, x, y):
         self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        add_texture(self.image, "hat.png")
+        add_texture(self.image, "fireball.png")
         self.attack_area = AttackArea(self, "auto")
         self.x = x
         self.y = y

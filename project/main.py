@@ -37,9 +37,7 @@ def load_items():
 #-----------------------MATERIALS---------------------
 
 def load_materials():
-    global material_dict
-    # material_dict["iron"] = classes.Material("IRON", "WHITE")
-    # material_dict["platinum"] = classes.Material("PLATINUM", "BLACK")
+    global material_dicts
     with open("./project/json/materials.json") as materials_file:
         materials_list = json.load(materials_file)
     for material in materials_list:
@@ -52,7 +50,7 @@ def load_enemies():
     global enemy_dict
     enemy_dict["enemy_1"] = (10, 2, 100, "heroin_shadow.png", {items_dict["boots"]: 50, items_dict["amulet"]: 30}, {material_dict["copper"]: 50, material_dict["bronze"]: 30})
     enemy_dict["enemy_2"] = (20, 2, 200, "heroin_shadow.png", {items_dict["scythe"]: 50, items_dict["hat"]: 30}, {material_dict["iron"]: 50, material_dict["steel"]: 30})
-    enemy_dict["enemy_3"] = (50, 2, 300, "heroin_shadow.png", {items_dict["voodoo"]: 50, items_dict["ghost"]: 30}, {material_dict["platinum"]: 50, material_dict["diamond"]: 30})
+    enemy_dict["enemy_3"] = (850, 2, 300, "heroin_shadow.png", {items_dict["voodoo"]: 50, items_dict["ghost"]: 30}, {material_dict["platinum"]: 50, material_dict["diamond"]: 30})
 
 def load_walls():
     walls.add(classes.Wall(0, 0, 30, 2200, walls))

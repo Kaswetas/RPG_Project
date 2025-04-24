@@ -186,7 +186,7 @@
                 "y": 700,
                 "attack": 50,
                 "speed": 1,
-                "hp": 850,
+                "hp": 2000,
                 "minion": "enemy_3",
                 "minion_count": 3,
                 "fireball_count": 4,
