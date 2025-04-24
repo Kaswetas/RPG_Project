@@ -400,7 +400,7 @@ class Minion(Enemy):
     def spawn(self, x, y):
         self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        add_texture(self.image, "placeholder.png")
+        add_texture(self.image, "heroin_shadow.png")
         self.attack_area = AttackArea(self, "auto")
         self.x = x
         self.y = y
@@ -473,15 +473,15 @@ class Boss(pygame.sprite.Sprite):
         self.level_name = level_name
         self.level_changer = level_changer
         self.who_attacked = player
-        self.image = pygame.Surface((100, 100), pygame.SRCALPHA)
+        self.image = pygame.Surface((200, 200), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        add_texture(self.image, "heroin_shadow.png")
+        add_texture(self.image, "boss.png")
         self.attack_area = AttackArea(self, "auto")
         self.x = x
         self.y = y
         self.rect.x = x
         self.rect.y = y
-        self.hp_bar = HPbar(self, "YELLOW", x, y - 40 , 80, 20)
+        self.hp_bar = HPbar(self, "YELLOW", x, y - 40 , 180, 20)
         self.last_spawned = 0
         self.all_sprites = all_sprites
         self.player = player
