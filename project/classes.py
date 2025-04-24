@@ -542,7 +542,7 @@ class Blacksmith(pygame.sprite.Sprite):
         self.player = player
         self.traded = False
         self.image = pygame.surface.Surface((80, 80), pygame.SRCALPHA)
-        add_texture(self.image, "placeholder.png")
+        add_texture(self.image, "blacksmith.png")
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y

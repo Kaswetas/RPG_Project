@@ -1,26 +1,26 @@
 [
     {
         "name": "copper",
-        "texture": "placeholder.png"
+        "texture": "copper_ingot.png"
     },
     {
         "name": "bronze",
-        "texture": "placeholder.png"
+        "texture": "bronze_ingot.png"
     },
     {
         "name": "iron",
-        "texture": "placeholder.png"
+        "texture": "iron_ingot.png"
     },
     {
         "name": "steel",
-        "texture": "placeholder.png"
+        "texture": "steel_ingot.png"
     },
     {
         "name": "platinum",
-        "texture": "placeholder.png"
+        "texture": "platinum_ingot.png"
     },
     {
         "name": "diamond",
-        "texture": "placeholder.png"
+        "texture": "diamond.png"
     }
 ]
