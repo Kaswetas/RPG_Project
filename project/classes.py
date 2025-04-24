@@ -2,8 +2,15 @@ import pygame
 import time
 from random import randint, choice
 
+texture_cache = dict()
+
 def add_texture(surface:pygame.Surface, name):
-    cur_image = pygame.image.load(f"./textures/{name}")
+    cur_image = None
+    if name in texture_cache.keys():
+        cur_image = texture_cache[name]
+    else:
+        cur_image = pygame.image.load(f"./textures/{name}")
+        texture_cache[name] = cur_image
     width = surface.get_width()
     height = surface.get_height()
     cur_image = pygame.transform.scale(cur_image, (width, height))
@@ -249,6 +256,7 @@ class Hero(pygame.sprite.Sprite):
     def move(self):
         keys = pygame.key.get_pressed()
         direction = 0
+        vertical_direction = 0
         if keys[pygame.K_a]:
             self.rect.move_ip(-self.speed, 0)
             self.camera[0] += self.speed
@@ -260,14 +268,18 @@ class Hero(pygame.sprite.Sprite):
         if keys[pygame.K_w]:
             self.rect.move_ip(0, -self.speed)
             self.camera[1] += self.speed
+            vertical_direction += 1
         if keys[pygame.K_s]:
             self.rect.move_ip(0, self.speed)
             self.camera[1] -= self.speed
+            vertical_direction -= 1
 
         if direction < 0:
             self.set_texture("hero_left.png")
         elif direction > 0:
             self.set_texture("hero_right.png")
+        elif vertical_direction > 0:
+            self.set_texture("hero_up.png")
         else:
             self.set_texture("hero.png")
 
