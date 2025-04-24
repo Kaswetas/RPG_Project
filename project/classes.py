@@ -203,9 +203,8 @@ class Hero(pygame.sprite.Sprite):
         self.width = 80
         self.height = 80
         self.color = "WHITE"
-        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.set_texture("hero.png")
         self.rect = self.image.get_rect()
-        add_texture(self.image, "hero.png")
         self.speed = 5
         self.speed_default = 5
         self.max_hp = 100
@@ -217,6 +216,10 @@ class Hero(pygame.sprite.Sprite):
         self.camera = [260, -40]
         self.last_healed = 0
     
+    def set_texture(self, texture):
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        add_texture(self.image, texture)
+
     def death(self):
         if self.rec_hp > self.max_hp:
             self.rec_hp = self.max_hp
@@ -245,19 +248,29 @@ class Hero(pygame.sprite.Sprite):
 
     def move(self):
         keys = pygame.key.get_pressed()
+        direction = 0
         if keys[pygame.K_a]:
             self.rect.move_ip(-self.speed, 0)
             self.camera[0] += self.speed
+            direction -= 1
         if keys[pygame.K_d]:
             self.rect.move_ip(self.speed, 0)
             self.camera[0] -= self.speed
+            direction += 1
         if keys[pygame.K_w]:
             self.rect.move_ip(0, -self.speed)
             self.camera[1] += self.speed
         if keys[pygame.K_s]:
             self.rect.move_ip(0, self.speed)
             self.camera[1] -= self.speed
-        
+
+        if direction < 0:
+            self.set_texture("hero_left.png")
+        elif direction > 0:
+            self.set_texture("hero_right.png")
+        else:
+            self.set_texture("hero.png")
+
         for wall in self.wall_list:
             if pygame.Rect.colliderect(wall.rect, self.rect):
                 self.return_if_collided()
